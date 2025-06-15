@@ -45,11 +45,14 @@ export class StorageManager {
         const currentAliases = await this.getCreatedAliases();
         currentAliases.push(alias);
         await chrome.storage.sync.set({ [this.CREATED_ALIASES_KEY]: currentAliases });
-    }
-
-    static async removeCreatedAlias(aliasEmail: string): Promise<void> {
-        const currentAliases = await this.getCreatedAliases();
-        const filteredAliases = currentAliases.filter(alias => alias.alias !== aliasEmail);
-        await chrome.storage.sync.set({ [this.CREATED_ALIASES_KEY]: filteredAliases });
+    } static async removeCreatedAlias(aliasEmail: string): Promise<void> {
+        try {
+            const currentAliases = await this.getCreatedAliases();
+            const filteredAliases = currentAliases.filter(alias => alias.alias !== aliasEmail);
+            await chrome.storage.sync.set({ [this.CREATED_ALIASES_KEY]: filteredAliases });
+        } catch (error) {
+            console.warn('Failed to remove created alias from storage:', error);
+            // Don't throw error as this is not critical for the delete operation
+        }
     }
 }

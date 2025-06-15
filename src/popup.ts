@@ -8,10 +8,19 @@ class PopupManager {
     private domains: Domain[] = [];
     private users: string[] = [];
     private aliases: RoutingRule[] = [];
+    private currentTabUrl: string = '';
 
     async init() {
         try {
             this.settings = await StorageManager.getSettings();
+
+            // Get current tab URL for prioritizing aliases
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                this.currentTabUrl = tab?.url || '';
+            } catch (error) {
+                console.log('Unable to get current tab URL:', error);
+            }
 
             // Check if API token is configured
             if (!this.settings.apiToken) {
@@ -189,9 +198,7 @@ class PopupManager {
     `;
 
         return div;
-    }
-
-    private setupEventListeners() {
+    } private setupEventListeners() {
         // Create alias button
         document.getElementById('createButton')?.addEventListener('click', () => this.createAlias());
 
@@ -206,7 +213,20 @@ class PopupManager {
         // Domain filter change
         document.getElementById('domainFilter')?.addEventListener('change', () => this.updateAliasesList());
 
-        // Alias actions (spam/delete)
+        // List all aliases button
+        document.getElementById('listAllAliasesButton')?.addEventListener('click', () => this.showAllAliasesModal());
+
+        // Close all aliases modal
+        document.getElementById('closeAllAliasesModal')?.addEventListener('click', () => this.hideAllAliasesModal());
+
+        // Close modal when clicking outside
+        document.getElementById('allAliasesModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                this.hideAllAliasesModal();
+            }
+        });
+
+        // Alias actions (spam/delete) for main list
         document.getElementById('aliasesContainer')?.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
             if (target.tagName === 'BUTTON') {
@@ -217,6 +237,35 @@ class PopupManager {
                     this.spamAlias(aliasId);
                 } else if (action === 'delete') {
                     this.deleteAlias(aliasId);
+                }
+            }
+        });
+
+        // Alias actions for all aliases modal
+        document.getElementById('allAliasesContainer')?.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'BUTTON') {
+                const action = target.dataset.action;
+
+                if (action === 'delete') {
+                    const aliasId = parseInt(target.dataset.id || '0');
+                    this.deleteAlias(aliasId, true); // true indicates it's from the modal
+                } else if (action === 'deleteRecent') {
+                    const aliasEmail = target.dataset.alias || '';
+                    this.deleteRecentAlias(aliasEmail);
+                }
+            }
+        });
+
+        // Alias actions for recent aliases (including delete)
+        document.getElementById('recentAliasesContainer')?.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'BUTTON') {
+                const action = target.dataset.action;
+
+                if (action === 'deleteRecent') {
+                    const aliasEmail = target.dataset.alias || '';
+                    this.deleteRecentAlias(aliasEmail);
                 }
             }
         });
@@ -301,9 +350,7 @@ class PopupManager {
         } catch (error) {
             this.showError(error instanceof Error ? error.message : 'Failed to spam alias');
         }
-    }
-
-    private async deleteAlias(aliasId: number) {
+    } private async deleteAlias(aliasId: number, fromModal: boolean = false) {
         if (!confirm('Are you sure you want to delete this alias?')) {
             return;
         }
@@ -314,6 +361,11 @@ class PopupManager {
             // Reload aliases
             await this.loadData();
             this.updateAliasesList();
+
+            // If deleted from modal, refresh modal content
+            if (fromModal) {
+                this.populateAllAliasesModal();
+            }
 
         } catch (error) {
             this.showError(error instanceof Error ? error.message : 'Failed to delete alias');
@@ -347,14 +399,111 @@ class PopupManager {
 
     private hideError() {
         document.getElementById('errorState')?.classList.add('hidden');
-    }
-
-    private showNoTokenState() {
+    } private showNoTokenState() {
         document.getElementById('noTokenState')?.classList.remove('hidden');
         document.getElementById('aliasesList')?.classList.add('hidden');
     }
 
-    private async updateRecentAliases() {
+    private showAllAliasesModal() {
+        const modal = document.getElementById('allAliasesModal')!;
+        modal.classList.remove('hidden');
+        this.populateAllAliasesModal();
+    }
+
+    private hideAllAliasesModal() {
+        const modal = document.getElementById('allAliasesModal')!;
+        modal.classList.add('hidden');
+    }
+
+    private populateAllAliasesModal() {
+        const container = document.getElementById('allAliasesContainer')!;
+        container.innerHTML = '';
+
+        if (this.aliases.length === 0) {
+            container.innerHTML = '<p class="text-center text-gray-500 py-4">No aliases found</p>';
+            return;
+        }
+
+        // Filter out system aliases
+        const visibleAliases = this.aliases.filter(alias =>
+            !this.settings!.systemAliases.includes(alias.matchUser)
+        );
+
+        visibleAliases.forEach(alias => {
+            const aliasElement = this.createAliasElementWithDelete(alias);
+            container.appendChild(aliasElement);
+        });
+    }
+
+    private createAliasElementWithDelete(alias: RoutingRule): HTMLElement {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded border hover:bg-gray-100';
+
+        const targetEmails = alias.targetAddresses.join(', ');
+        const isSpamAlias = alias.targetAddresses.includes(this.settings!.spamEmail) ||
+            (this.settings!.customSpamEmail && alias.targetAddresses.includes(this.settings!.customSpamEmail));
+
+        div.innerHTML = `
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate">
+                    ${alias.matchUser}@${alias.domainName}
+                </div>
+                <div class="text-xs text-gray-500 truncate" title="${targetEmails}">
+                    → ${targetEmails}
+                </div>
+                ${isSpamAlias ? '<span class="text-xs text-orange-600 font-medium">SPAM</span>' : ''}
+            </div>
+            <button class="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 rounded" 
+                    data-action="delete" 
+                    data-id="${alias.id}"
+                    title="Delete alias">
+                ✕
+            </button>
+        `;
+
+        return div;
+    }
+
+    private async deleteRecentAlias(aliasEmail: string) {
+        if (!confirm(`Are you sure you want to delete the alias ${aliasEmail}?`)) {
+            return;
+        }
+
+        try {
+            // Find the alias in the API data
+            const alias = this.aliases.find(a => `${a.matchUser}@${a.domainName}` === aliasEmail);
+            if (!alias) {
+                this.showError('Alias not found');
+                return;
+            }
+
+            // Delete from API
+            await this.api!.deleteRoutingRule({ routingRuleId: alias.id });
+
+            // Remove from stored created aliases
+            await StorageManager.removeCreatedAlias(aliasEmail);
+
+            // Reload data and refresh UI
+            await this.loadData();
+            this.updateAliasesList();
+            this.updateRecentAliases();
+
+        } catch (error) {
+            this.showError(error instanceof Error ? error.message : 'Failed to delete alias');
+        }
+    }
+
+    private getCurrentWebsiteDomain(): string {
+        try {
+            if (this.currentTabUrl) {
+                const url = new URL(this.currentTabUrl);
+                return url.hostname.replace(/^www\./, '');
+            }
+        } catch (error) {
+            console.log('Error extracting domain from current URL:', error);
+        }
+        return '';
+    } private async updateRecentAliases() {
         const recentAliasesSection = document.getElementById('recentAliasesSection')!;
         const recentAliasesContainer = document.getElementById('recentAliasesContainer')!;
 
@@ -366,20 +515,38 @@ class PopupManager {
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
             const recentlyCreated = recentAliases
-                .filter(alias => new Date(alias.createdAt) > sevenDaysAgo)
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .slice(0, 5); // Show max 5 recent aliases
+                .filter(alias => new Date(alias.createdAt) > sevenDaysAgo);
+
+            // Get current website domain for prioritization
+            const currentDomain = this.getCurrentWebsiteDomain();
+
+            // Sort aliases: current website first, then by creation date
+            const sortedAliases = recentlyCreated.sort((a, b) => {
+                const aDomain = this.extractDomainFromUrl(a.createdFor);
+                const bDomain = this.extractDomainFromUrl(b.createdFor);
+
+                // If one alias is from current website and other isn't, prioritize current website
+                if (currentDomain && aDomain === currentDomain && bDomain !== currentDomain) {
+                    return -1;
+                }
+                if (currentDomain && bDomain === currentDomain && aDomain !== currentDomain) {
+                    return 1;
+                }
+
+                // Otherwise sort by creation date (newest first)
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            }).slice(0, 5); // Show max 5 recent aliases
 
             recentAliasesContainer.innerHTML = '';
 
-            if (recentlyCreated.length === 0) {
+            if (sortedAliases.length === 0) {
                 recentAliasesSection.classList.add('hidden');
                 return;
             }
 
             recentAliasesSection.classList.remove('hidden');
 
-            recentlyCreated.forEach(alias => {
+            sortedAliases.forEach(alias => {
                 const aliasElement = this.createRecentAliasElement(alias);
                 recentAliasesContainer.appendChild(aliasElement);
             });
@@ -387,11 +554,17 @@ class PopupManager {
             console.error('Error loading recent aliases:', error);
             recentAliasesSection.classList.add('hidden');
         }
-    }
-
-    private createRecentAliasElement(alias: any): HTMLElement {
+    } private createRecentAliasElement(alias: any): HTMLElement {
         const div = document.createElement('div');
-        div.className = 'flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200';
+        const currentDomain = this.getCurrentWebsiteDomain();
+        const aliasDomain = this.extractDomainFromUrl(alias.createdFor);
+
+        // Highlight if it's from current website
+        const isCurrentSite = currentDomain && aliasDomain === currentDomain;
+        const bgColor = isCurrentSite ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200';
+        const textColor = isCurrentSite ? 'text-green-600' : 'text-blue-600';
+
+        div.className = `flex items-center justify-between p-2 rounded border ${bgColor}`;
 
         const createdDate = new Date(alias.createdAt);
         const relativeTime = this.getRelativeTime(createdDate);
@@ -401,8 +574,9 @@ class PopupManager {
             <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-gray-900 truncate">
                     ${alias.alias}
+                    ${isCurrentSite ? '<span class="text-xs bg-green-100 text-green-800 px-1 rounded ml-1">Current Site</span>' : ''}
                 </div>
-                <div class="text-xs text-blue-600 truncate" title="${alias.createdFor}">
+                <div class="text-xs ${textColor} truncate" title="${alias.createdFor}">
                     Created for ${domain} • ${relativeTime}
                 </div>
                 <div class="text-xs text-gray-500 truncate" title="${alias.targetAddress}">
@@ -414,6 +588,12 @@ class PopupManager {
                         onclick="navigator.clipboard.writeText('${alias.alias}')" 
                         title="Copy to clipboard">
                     Copy
+                </button>
+                <button class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200" 
+                        data-action="deleteRecent" 
+                        data-alias="${alias.alias}"
+                        title="Delete alias">
+                    ✕
                 </button>
             </div>
         `;

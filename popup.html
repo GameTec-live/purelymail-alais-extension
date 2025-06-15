@@ -32,7 +32,44 @@
                 </div>
             </div>
         </div>
-
+        <div id="aliasesList"> <!-- Recently Created Aliases Section -->
+            <div id="recentAliasesSection" class="mb-6 hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-md font-medium text-gray-900">Recently Created from Websites</h2>
+                    <button id="listAllAliasesButton"
+                        class="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-1 rounded"
+                        title="View all aliases">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="recentAliasesContainer" class="space-y-2 max-h-32 overflow-y-auto mb-4">
+                    <!-- Recent aliases will be populated by JS -->
+                </div>
+            </div><!-- All Aliases Modal/Section -->
+            <div id="allAliasesModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-96 overflow-hidden">
+                        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">All Aliases</h3>
+                            <button id="closeAllAliasesModal"
+                                class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1 rounded">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="allAliasesContainer" class="p-4 overflow-y-auto max-h-80 space-y-2">
+                            <!-- All aliases will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Domain Filter -->
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -63,22 +100,12 @@
                 Open Settings
             </button>
         </div> <!-- Aliases List -->
-        <div id="aliasesList">
-            <!-- Recently Created Aliases Section -->
-            <div id="recentAliasesSection" class="mb-6 hidden">
-                <h2 class="text-md font-medium text-gray-900 mb-3">Recently Created from Websites</h2>
-                <div id="recentAliasesContainer" class="space-y-2 max-h-32 overflow-y-auto mb-4">
-                    <!-- Recent aliases will be populated by JS -->
-                </div>
-            </div>
-
-            <h2 class="text-md font-medium text-gray-900 mb-3">All Current Aliases</h2>
-            <div id="aliasesContainer" class="space-y-2 max-h-64 overflow-y-auto">
-                <!-- Aliases will be populated by JS -->
-            </div>
-            <div id="noAliases" class="text-center py-4 text-sm text-gray-500 hidden">
-                No aliases found for selected domains
-            </div>
+        <h2 class="text-md font-medium text-gray-900 mb-3">Current Domain Aliases</h2>
+        <div id="aliasesContainer" class="space-y-2 max-h-64 overflow-y-auto">
+            <!-- Aliases will be populated by JS -->
+        </div>
+        <div id="noAliases" class="text-center py-4 text-sm text-gray-500 hidden">
+            No aliases found for selected domains
         </div>
     </div>
 
