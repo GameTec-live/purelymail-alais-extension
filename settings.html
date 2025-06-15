@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purelymail Alias Manager - Settings</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto py-8 px-4">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h1 class="text-xl font-semibold text-gray-900">Purelymail Alias Manager Settings</h1>
+                <p class="text-sm text-gray-600 mt-1">Configure your extension preferences and API access</p>
+            </div>
+
+            <div class="p-6 space-y-8">
+                <!-- API Configuration -->
+                <section>
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">API Configuration</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="apiToken" class="block text-sm font-medium text-gray-700 mb-2">
+                                API Token *
+                            </label>
+                            <input type="password" id="apiToken" class="input-field w-full max-w-md"
+                                placeholder="Enter your Purelymail API token" />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Get your API token from the Purelymail control panel
+                            </p>
+                        </div>
+                        <button id="testConnectionButton" class="btn-secondary">
+                            Test Connection
+                        </button>
+                        <div id="connectionStatus" class="hidden">
+                            <!-- Status will be shown here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Account Settings -->
+                <section id="accountSettings" class="hidden">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Account Settings</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="defaultAccount" class="block text-sm font-medium text-gray-700 mb-2">
+                                Default Account
+                            </label>
+                            <select id="defaultAccount" class="select-field w-full">
+                                <option value="">Select default account...</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">
+                                New aliases will redirect to this account by default
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="defaultDomain" class="block text-sm font-medium text-gray-700 mb-2">
+                                Default Domain
+                            </label>
+                            <select id="defaultDomain" class="select-field w-full">
+                                <option value="">Select default domain...</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Domain preselected when creating new aliases
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Spam Settings -->
+                <section id="spamSettings" class="hidden">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Spam Settings</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="spamEmailType" class="block text-sm font-medium text-gray-700 mb-2">
+                                Spam Email Account
+                            </label>
+                            <select id="spamEmailType" class="select-field w-full max-w-md">
+                                <option value="account">Select from your accounts</option>
+                                <option value="custom">Custom email address</option>
+                            </select>
+                        </div>
+
+                        <div id="spamAccountSelect" class="space-y-2">
+                            <select id="spamEmail" class="select-field w-full max-w-md">
+                                <option value="">Select spam account...</option>
+                            </select>
+                        </div>
+
+                        <div id="customSpamInput" class="space-y-2 hidden">
+                            <input type="email" id="customSpamEmail" class="input-field w-full max-w-md"
+                                placeholder="spam@example.com" />
+                            <p class="text-xs text-gray-500">
+                                Enter a custom email address for spam redirection
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hidden Items Settings -->
+                <section id="hiddenSettings" class="hidden">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Hidden Items</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Hidden Users
+                            </label>
+                            <div id="hiddenUsersList"
+                                class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3">
+                                <!-- User checkboxes will be populated here -->
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                These users won't appear in dropdowns
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Hidden Aliases
+                            </label>
+                            <div id="hiddenAliasesList"
+                                class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3">
+                                <!-- Alias checkboxes will be populated here -->
+                                <div class="text-sm text-gray-500">Loading aliases...</div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                These aliases won't appear in the popup list
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Save/Reset Buttons -->
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <button id="resetButton" class="btn-secondary">
+                        Reset to Defaults
+                    </button>
+                    <div class="space-x-3">
+                        <button id="cancelButton" class="btn-secondary">
+                            Cancel
+                        </button>
+                        <button id="saveButton" class="btn-primary">
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Messages -->
+                <div id="statusMessage" class="hidden">
+                    <!-- Status messages will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+
+</html>

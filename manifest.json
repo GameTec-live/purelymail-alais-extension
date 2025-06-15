@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Purelymail Alias Manager",
+    "version": "1.0.0",
+    "description": "Manage email aliases for Purelymail accounts",
+    "permissions": [
+        "storage",
+        "tabs",
+        "activeTab"
+    ],
+    "host_permissions": [
+        "https://purelymail.com/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "Purelymail Alias Manager"
+    },
+    "options_page": "settings.html",
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    },
+    "icons": {
+        "16": "icons/icon16.svg",
+        "48": "icons/icon16.svg",
+        "128": "icons/icon16.svg"
+    }
+}

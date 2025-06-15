@@ -1,0 +1,45 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Extension",
+			"type": "shell",
+			"command": "bun",
+			"args": [
+				"run",
+				"build"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Dev Mode (Watch)",
+			"command": "bun",
+			"args": [
+				"run",
+				"dev"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": [
+				{
+					"pattern": [
+						{
+							"regexp": ".",
+							"file": 1,
+							"location": 2,
+							"message": 3
+						}
+					],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "webpack .* compiled",
+						"endsPattern": "webpack .* compiled"
+					}
+				}
+			]
+		}
+	]
+}

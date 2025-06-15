@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purelymail Alias Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="w-96 h-auto bg-white">
+    <div class="p-4">
+        <!-- Header with Create Alias Form -->
+        <div class="mb-6 pb-4 border-b border-gray-200">
+            <h1 class="text-lg font-semibold text-gray-900 mb-4">Create New Alias</h1>
+
+            <div class="space-y-3">
+                <div class="flex space-x-2">
+                    <input type="text" id="aliasName" placeholder="Alias name" class="input-field flex-1 text-sm" />
+                    <select id="domainSelect" class="select-field text-sm min-w-0 flex-1">
+                        <option value="">Select domain...</option>
+                    </select>
+                </div>
+
+                <div class="flex space-x-2">
+                    <select id="accountSelect" class="select-field flex-1 text-sm">
+                        <option value="">Select account...</option>
+                    </select>
+                    <button id="createButton" class="btn-primary text-sm px-6">
+                        Create
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Domain Filter -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Show aliases for:
+            </label>
+            <select id="domainFilter" class="select-field w-full text-sm" multiple size="3">
+                <!-- Options will be populated by JS -->
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple domains</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8 hidden">
+            <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+            <p class="text-sm text-gray-600 mt-2">Loading aliases...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+            <p class="text-sm text-red-600" id="errorMessage"></p>
+            <button id="retryButton" class="btn-secondary text-xs mt-2">Retry</button>
+        </div>
+
+        <!-- No API Token State -->
+        <div id="noTokenState" class="hidden text-center py-6">
+            <p class="text-sm text-gray-600 mb-3">API token not configured</p>
+            <button id="openSettingsButton" class="btn-primary text-sm">
+                Open Settings
+            </button>
+        </div>
+
+        <!-- Aliases List -->
+        <div id="aliasesList">
+            <h2 class="text-md font-medium text-gray-900 mb-3">Current Aliases</h2>
+            <div id="aliasesContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                <!-- Aliases will be populated by JS -->
+            </div>
+            <div id="noAliases" class="text-center py-4 text-sm text-gray-500 hidden">
+                No aliases found for selected domains
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
