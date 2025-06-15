@@ -40,6 +40,7 @@ export interface ExtensionSettings {
     systemAliases: string[];
     defaultDomain: string;
     hiddenUsers: string[];
+    hiddenDomains: string[];
     spamEmail: string;
     customSpamEmail?: string;
     selectedDomains: string[];

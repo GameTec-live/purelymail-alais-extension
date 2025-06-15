@@ -98,12 +98,10 @@
                             </p>
                         </div>
                     </div>
-                </section>
-
-                <!-- Hidden Items Settings -->
+                </section> <!-- Hidden Items Settings -->
                 <section id="hiddenSettings" class="hidden">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Hidden Items</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Hidden Users
@@ -114,6 +112,19 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">
                                 These users won't appear in dropdowns
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Hidden Domains
+                            </label>
+                            <div id="hiddenDomainsList"
+                                class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3">
+                                <!-- Domain checkboxes will be populated here -->
+                                <div class="text-sm text-gray-500">Loading domains...</div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                These domains won't appear anywhere in the UI
                             </p>
                         </div>
                         <div>

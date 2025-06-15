@@ -114,12 +114,12 @@ class SettingsManager {
             );
             this.hideAdditionalSections();
         }
-    }
-    private populateAccountSettings() {
+    } private populateAccountSettings() {
         this.populateDefaultAccount();
         this.populateDefaultDomain();
         this.populateSpamEmail();
         this.populateHiddenUsers();
+        this.populateHiddenDomains();
         this.populateHiddenAliases();
     }
     private populateDefaultAccount() {
@@ -142,13 +142,14 @@ class SettingsManager {
             }
             defaultAccountSelect.appendChild(option);
         });
-    }
-
-    private populateDefaultDomain() {
+    } private populateDefaultDomain() {
         const defaultDomainSelect = document.getElementById('defaultDomain') as HTMLSelectElement;
-        defaultDomainSelect.innerHTML = '<option value="">Select default domain...</option>';
+        defaultDomainSelect.innerHTML = '<option value="">Select default domain...</option>';        // Filter out hidden domains
+        const visibleDomains = this.domains.filter(domain =>
+            !(this.settings.hiddenDomains || []).includes(domain.name)
+        );
 
-        if (this.domains.length === 0) {
+        if (visibleDomains.length === 0) {
             const option = document.createElement('option');
             option.value = '';
             option.textContent = 'No domains available';
@@ -157,7 +158,7 @@ class SettingsManager {
             return;
         }
 
-        this.domains.forEach(domain => {
+        visibleDomains.forEach(domain => {
             const option = document.createElement('option');
             option.value = domain.name;
             option.textContent = domain.name;
@@ -210,6 +211,37 @@ class SettingsManager {
             const label = document.createElement('label');
             label.htmlFor = checkbox.id;
             label.textContent = user;
+            label.className = 'text-sm text-gray-700 cursor-pointer';
+
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            container.appendChild(div);
+        });
+    }
+
+    private populateHiddenDomains() {
+        const container = document.getElementById('hiddenDomainsList')!;
+        container.innerHTML = '';
+
+        if (this.domains.length === 0) {
+            container.innerHTML = '<div class="text-sm text-gray-500">No domains available</div>';
+            return;
+        }
+
+        this.domains.forEach(domain => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `hidden-domain-${domain.name}`;
+            checkbox.value = domain.name;
+            checkbox.checked = (this.settings.hiddenDomains || []).includes(domain.name);
+            checkbox.className = 'rounded border-gray-300 text-primary-600 mr-2';
+
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = domain.name;
             label.className = 'text-sm text-gray-700 cursor-pointer';
 
             div.appendChild(checkbox);
@@ -306,6 +338,13 @@ class SettingsManager {
                 systemAliases.push((checkbox as HTMLInputElement).value);
             });
 
+            // Collect hidden domains
+            const hiddenDomains: string[] = [];
+            const domainCheckboxes = document.querySelectorAll('#hiddenDomainsList input[type="checkbox"]:checked');
+            domainCheckboxes.forEach(checkbox => {
+                hiddenDomains.push((checkbox as HTMLInputElement).value);
+            });
+
             // Create settings object
             const newSettings: Partial<ExtensionSettings> = {
                 apiToken,
@@ -315,6 +354,7 @@ class SettingsManager {
                 spamEmail,
                 customSpamEmail,
                 hiddenUsers,
+                hiddenDomains,
                 isFirstRun: false
             };
 

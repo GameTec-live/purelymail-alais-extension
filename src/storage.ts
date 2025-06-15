@@ -2,25 +2,29 @@ import type { ExtensionSettings, CreatedAlias } from './types';
 
 export class StorageManager {
     private static readonly SETTINGS_KEY = 'purelymailSettings';
-    private static readonly CREATED_ALIASES_KEY = 'purelymailCreatedAliases';
-
-    static async getSettings(): Promise<ExtensionSettings> {
+    private static readonly CREATED_ALIASES_KEY = 'purelymailCreatedAliases'; static async getSettings(): Promise<ExtensionSettings> {
         const result = await chrome.storage.sync.get(this.SETTINGS_KEY);
-        return result[this.SETTINGS_KEY] || this.getDefaultSettings();
+        const stored = result[this.SETTINGS_KEY];
+
+        if (!stored) {
+            return this.getDefaultSettings();
+        }
+
+        // Merge with defaults to ensure all properties exist (for backward compatibility)
+        return { ...this.getDefaultSettings(), ...stored };
     }
 
     static async saveSettings(settings: Partial<ExtensionSettings>): Promise<void> {
         const currentSettings = await this.getSettings();
         const updatedSettings = { ...currentSettings, ...settings };
         await chrome.storage.sync.set({ [this.SETTINGS_KEY]: updatedSettings });
-    }
-
-    static getDefaultSettings(): ExtensionSettings {
+    } static getDefaultSettings(): ExtensionSettings {
         return {
             defaultAccount: '',
             systemAliases: [],
             defaultDomain: '',
             hiddenUsers: [],
+            hiddenDomains: [],
             spamEmail: '',
             selectedDomains: [],
             isFirstRun: true

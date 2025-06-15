@@ -66,16 +66,18 @@ class PopupManager {
         this.populateAccountSelect();
         this.updateRecentAliases();
         this.updateAliasesList();
-    }
-    private populateDomainSelects() {
+    } private populateDomainSelects() {
         const domainSelect = document.getElementById('domainSelect') as HTMLSelectElement;
         const domainFilter = document.getElementById('domainFilter') as HTMLSelectElement;
 
         // Clear existing options
         domainSelect.innerHTML = '<option value="">Select domain...</option>';
-        domainFilter.innerHTML = '';
+        domainFilter.innerHTML = '';        // Filter out hidden domains
+        const visibleDomains = this.domains.filter(domain =>
+            !(this.settings!.hiddenDomains || []).includes(domain.name)
+        );
 
-        if (this.domains.length === 0) {
+        if (visibleDomains.length === 0) {
             // Handle empty domains state
             const emptyOption1 = document.createElement('option');
             emptyOption1.value = '';
@@ -91,7 +93,7 @@ class PopupManager {
             return;
         }
 
-        this.domains.forEach(domain => {
+        visibleDomains.forEach(domain => {
             // Main domain select for creating aliases
             const option1 = document.createElement('option');
             option1.value = domain.name;
@@ -144,12 +146,11 @@ class PopupManager {
 
         // Get selected domains from filter
         const selectedDomains = Array.from(domainFilter.selectedOptions).map(option => option.value);
-        const domainsToShow = selectedDomains.length > 0 ? selectedDomains : [this.settings!.defaultDomain];
-
-        // Filter aliases by selected domains and hide system aliases
+        const domainsToShow = selectedDomains.length > 0 ? selectedDomains : [this.settings!.defaultDomain];        // Filter aliases by selected domains and hide system aliases and aliases from hidden domains
         const visibleAliases = this.aliases.filter(alias =>
             domainsToShow.includes(alias.domainName) &&
-            !this.settings!.systemAliases.includes(alias.matchUser)
+            !this.settings!.systemAliases.includes(alias.matchUser) &&
+            !(this.settings!.hiddenDomains || []).includes(alias.domainName)
         );
 
         container.innerHTML = '';
