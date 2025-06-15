@@ -203,6 +203,11 @@ class PopupManager {
         // Create alias button
         document.getElementById('createButton')?.addEventListener('click', () => this.createAlias());
 
+        // Settings gear button
+        document.getElementById('settingsGearButton')?.addEventListener('click', () => {
+            chrome.runtime.sendMessage({ action: 'openSettings' });
+        });
+
         // Open settings button
         document.getElementById('openSettingsButton')?.addEventListener('click', () => {
             chrome.runtime.sendMessage({ action: 'openSettings' });
@@ -300,20 +305,11 @@ class PopupManager {
                 catchall: false
             });
 
-            // Store the alias creation for tracking
-            await StorageManager.addCreatedAlias({
-                alias: `${aliasName}@${domain}`,
-                targetAddress: account,
-                createdAt: new Date().toISOString(),
-                createdFor: 'Extension Popup'
-            });
-
             // Clear the form
             aliasNameInput.value = '';
 
             // Reload aliases and recent aliases
             await this.loadData();
-            this.updateRecentAliases();
             this.updateAliasesList();
 
         } catch (error) {
@@ -354,6 +350,18 @@ class PopupManager {
     } private async deleteAlias(aliasId: number, fromModal: boolean = false) {
         if (!confirm('Are you sure you want to delete this alias?')) {
             return;
+        }
+
+        // Remove from recent aliases if it was created recently
+        const aliasEmail = this.aliases.find(a => a.id === aliasId);
+        if (aliasEmail) {
+            try {
+                const fullAliasEmail = `${aliasEmail.matchUser}@${aliasEmail.domainName}`;
+                await StorageManager.removeCreatedAlias(fullAliasEmail);
+                this.updateRecentAliases();
+            } catch (error) {
+                console.log('Failed to remove recent alias:', error);
+            }
         }
 
         try {
@@ -471,6 +479,10 @@ class PopupManager {
         }
 
         try {
+            // Remove from stored created aliases
+            await StorageManager.removeCreatedAlias(aliasEmail);
+            this.updateRecentAliases();
+
             // Find the alias in the API data
             const alias = this.aliases.find(a => `${a.matchUser}@${a.domainName}` === aliasEmail);
             if (!alias) {
@@ -481,13 +493,9 @@ class PopupManager {
             // Delete from API
             await this.api!.deleteRoutingRule({ routingRuleId: alias.id });
 
-            // Remove from stored created aliases
-            await StorageManager.removeCreatedAlias(aliasEmail);
-
             // Reload data and refresh UI
             await this.loadData();
             this.updateAliasesList();
-            this.updateRecentAliases();
 
         } catch (error) {
             this.showError(error instanceof Error ? error.message : 'Failed to delete alias');
