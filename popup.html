@@ -62,11 +62,17 @@
             <button id="openSettingsButton" class="btn-primary text-sm">
                 Open Settings
             </button>
-        </div>
-
-        <!-- Aliases List -->
+        </div> <!-- Aliases List -->
         <div id="aliasesList">
-            <h2 class="text-md font-medium text-gray-900 mb-3">Current Aliases</h2>
+            <!-- Recently Created Aliases Section -->
+            <div id="recentAliasesSection" class="mb-6 hidden">
+                <h2 class="text-md font-medium text-gray-900 mb-3">Recently Created from Websites</h2>
+                <div id="recentAliasesContainer" class="space-y-2 max-h-32 overflow-y-auto mb-4">
+                    <!-- Recent aliases will be populated by JS -->
+                </div>
+            </div>
+
+            <h2 class="text-md font-medium text-gray-900 mb-3">All Current Aliases</h2>
             <div id="aliasesContainer" class="space-y-2 max-h-64 overflow-y-auto">
                 <!-- Aliases will be populated by JS -->
             </div>

@@ -52,11 +52,10 @@ class PopupManager {
         } finally {
             this.showLoading(false);
         }
-    }
-
-    private populateUI() {
+    } private populateUI() {
         this.populateDomainSelects();
         this.populateAccountSelect();
+        this.updateRecentAliases();
         this.updateAliasesList();
     }
     private populateDomainSelects() {
@@ -228,9 +227,7 @@ class PopupManager {
                 this.createAlias();
             }
         });
-    }
-
-    private async createAlias() {
+    } private async createAlias() {
         const aliasNameInput = document.getElementById('aliasName') as HTMLInputElement;
         const domainSelect = document.getElementById('domainSelect') as HTMLSelectElement;
         const accountSelect = document.getElementById('accountSelect') as HTMLSelectElement;
@@ -253,11 +250,20 @@ class PopupManager {
                 catchall: false
             });
 
+            // Store the alias creation for tracking
+            await StorageManager.addCreatedAlias({
+                alias: `${aliasName}@${domain}`,
+                targetAddress: account,
+                createdAt: new Date().toISOString(),
+                createdFor: 'Extension Popup'
+            });
+
             // Clear the form
             aliasNameInput.value = '';
 
-            // Reload aliases
+            // Reload aliases and recent aliases
             await this.loadData();
+            this.updateRecentAliases();
             this.updateAliasesList();
 
         } catch (error) {
@@ -346,6 +352,96 @@ class PopupManager {
     private showNoTokenState() {
         document.getElementById('noTokenState')?.classList.remove('hidden');
         document.getElementById('aliasesList')?.classList.add('hidden');
+    }
+
+    private async updateRecentAliases() {
+        const recentAliasesSection = document.getElementById('recentAliasesSection')!;
+        const recentAliasesContainer = document.getElementById('recentAliasesContainer')!;
+
+        try {
+            const recentAliases = await StorageManager.getCreatedAliases();
+
+            // Only show recent aliases from the last 7 days
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            const recentlyCreated = recentAliases
+                .filter(alias => new Date(alias.createdAt) > sevenDaysAgo)
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .slice(0, 5); // Show max 5 recent aliases
+
+            recentAliasesContainer.innerHTML = '';
+
+            if (recentlyCreated.length === 0) {
+                recentAliasesSection.classList.add('hidden');
+                return;
+            }
+
+            recentAliasesSection.classList.remove('hidden');
+
+            recentlyCreated.forEach(alias => {
+                const aliasElement = this.createRecentAliasElement(alias);
+                recentAliasesContainer.appendChild(aliasElement);
+            });
+        } catch (error) {
+            console.error('Error loading recent aliases:', error);
+            recentAliasesSection.classList.add('hidden');
+        }
+    }
+
+    private createRecentAliasElement(alias: any): HTMLElement {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200';
+
+        const createdDate = new Date(alias.createdAt);
+        const relativeTime = this.getRelativeTime(createdDate);
+        const domain = this.extractDomainFromUrl(alias.createdFor);
+
+        div.innerHTML = `
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate">
+                    ${alias.alias}
+                </div>
+                <div class="text-xs text-blue-600 truncate" title="${alias.createdFor}">
+                    Created for ${domain} • ${relativeTime}
+                </div>
+                <div class="text-xs text-gray-500 truncate" title="${alias.targetAddress}">
+                    → ${alias.targetAddress}
+                </div>
+            </div>
+            <div class="flex space-x-1 ml-2">
+                <button class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200" 
+                        onclick="navigator.clipboard.writeText('${alias.alias}')" 
+                        title="Copy to clipboard">
+                    Copy
+                </button>
+            </div>
+        `;
+
+        return div;
+    }
+
+    private getRelativeTime(date: Date): string {
+        const now = new Date();
+        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+        if (diffInHours < 1) {
+            return 'Just now';
+        } else if (diffInHours < 24) {
+            return `${diffInHours}h ago`;
+        } else {
+            const diffInDays = Math.floor(diffInHours / 24);
+            return `${diffInDays}d ago`;
+        }
+    }
+
+    private extractDomainFromUrl(url: string): string {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname.replace(/^www\./, '');
+        } catch {
+            return 'Unknown website';
+        }
     }
 }
 

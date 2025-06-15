@@ -4,11 +4,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     mode: 'development',
-    devtool: 'inline-source-map',
-    entry: {
+    devtool: 'inline-source-map', entry: {
         background: './src/background.ts',
         popup: './src/popup.ts',
         settings: './src/settings.ts',
+        content: './src/content.ts',
         styles: './src/styles.css'
     },
     output: {

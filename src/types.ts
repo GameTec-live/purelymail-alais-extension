@@ -47,6 +47,13 @@ export interface ExtensionSettings {
     apiToken?: string;
 }
 
+export interface CreatedAlias {
+    alias: string;
+    targetAddress: string;
+    createdAt: string;
+    createdFor: string;
+}
+
 // API Request/Response Types
 export interface CreateRoutingRequest {
     domainName: string;

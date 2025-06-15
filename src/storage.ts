@@ -1,7 +1,8 @@
-import type { ExtensionSettings } from './types';
+import type { ExtensionSettings, CreatedAlias } from './types';
 
 export class StorageManager {
     private static readonly SETTINGS_KEY = 'purelymailSettings';
+    private static readonly CREATED_ALIASES_KEY = 'purelymailCreatedAliases';
 
     static async getSettings(): Promise<ExtensionSettings> {
         const result = await chrome.storage.sync.get(this.SETTINGS_KEY);
@@ -33,5 +34,22 @@ export class StorageManager {
 
     static async setFirstRunComplete(): Promise<void> {
         await this.saveSettings({ isFirstRun: false });
+    }
+
+    static async getCreatedAliases(): Promise<CreatedAlias[]> {
+        const result = await chrome.storage.sync.get(this.CREATED_ALIASES_KEY);
+        return result[this.CREATED_ALIASES_KEY] || [];
+    }
+
+    static async addCreatedAlias(alias: CreatedAlias): Promise<void> {
+        const currentAliases = await this.getCreatedAliases();
+        currentAliases.push(alias);
+        await chrome.storage.sync.set({ [this.CREATED_ALIASES_KEY]: currentAliases });
+    }
+
+    static async removeCreatedAlias(aliasEmail: string): Promise<void> {
+        const currentAliases = await this.getCreatedAliases();
+        const filteredAliases = currentAliases.filter(alias => alias.alias !== aliasEmail);
+        await chrome.storage.sync.set({ [this.CREATED_ALIASES_KEY]: filteredAliases });
     }
 }
