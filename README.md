@@ -4,6 +4,8 @@ Purelymail Alias Manager
 
 A Chrome extension for managing email aliases with Purelymail accounts.
 
+https://chromewebstore.google.com/detail/purelymail-alias-manager/loapkkkgcpphggjidfepfdljchkemoea
+
 ## Features
 
 - **First-run setup**: Automatically opens settings page on first install
@@ -35,6 +37,9 @@ A Chrome extension for managing email aliases with Purelymail accounts.
 - [Bun](https://bun.sh/) package manager
 
 ### Installation
+
+https://chromewebstore.google.com/detail/purelymail-alias-manager/loapkkkgcpphggjidfepfdljchkemoea
+
 
 ```bash
 # Install dependencies
